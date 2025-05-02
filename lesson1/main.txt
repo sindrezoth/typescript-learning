@@ -16,5 +16,3 @@
 
 2. Typed
   let a: number = 6;
-
-
