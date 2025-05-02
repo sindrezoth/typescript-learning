@@ -1,0 +1,20 @@
+1. Setup
+  npm i -g typescript
+
+  tsc config:
+    "compilerOptions": {
+      "target": "es2016" | "es5" // type of js to compile
+      "rootDir": "/path/to/src" // path to sources
+      "outDir": "/path/to/build" // path to put the compiled
+      "noEmitOnError": true // do not compile if the ts errors are occurs
+    },
+    "include": [
+      "src"
+    ] // paths of folders from with to compile
+
+  tsc -w // Start watching directory with .ts files
+
+2. Typed
+  let a: number = 6;
+
+
