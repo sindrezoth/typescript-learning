@@ -14,5 +14,5 @@
 
   tsc -w // Start watching directory with .ts files
 
-2. Typed
+2. Types appearing
   let a: number = 6;
