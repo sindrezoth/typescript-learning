@@ -1,8 +1,41 @@
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
 .game-container {
   max-width: 800px;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1rem;
   margin: 0 auto;
   align-items: center;
+}
+
+.hangman-drawing {
+  position: relative;
+  translate: -20px 0px;
+}
+
+.hangman-word {
+  display: flex;
+  gap: 0.25em;
+  font-size: 3rem;
+  font-weight: bold;
+  font-family: monospace;
+  text-transform: uppercase;
+}
+
+.word-letter {
+  border-bottom: 0.1em solid black;
+}
+
+.non-guessed-letter {
+  color: red;
+}
+
+.word-letter-hidden {
+  visibility: hidden;
 }
