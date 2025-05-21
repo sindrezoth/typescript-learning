@@ -1,5 +1,8 @@
 console.log("My own approach of making this app");
 import { api } from "./db/Database";
+import "./view/main"
+import { toBusinessLogic } from "./view/main";
+import {v4} from "uuid";
 
 type Item = {
   id: string;
@@ -25,23 +28,34 @@ class ItemList {
       console.log(this.list);
     });
   }
-
-  addItem(item: Item): void {
-    this.list.push(item);
-    api.create(item);
+  newItem(label: string): Item {
+    return {
+      id: v4().slice(0,8),
+      label,
+      checked: false,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    }
   }
 
-  addItems(items: Item[]): void {
+  public addItem = (item: Item): void => {
+    console.log(item);
+    this.list.push(item);
+    api.create(item);
+     
+  }
+
+  public addItems = (items: Item[]): void => {
     this.list.push(...items);
     api.create(items);
   }
 
-  readItem(itemId: string): Item | undefined {
+  public readItem = (itemId: string): Item | undefined => {
     api.read(itemId);
     const item = this.list.find((item) => item.id === itemId);
     return item ? { ...item } : undefined;
   }
-  readItems(itemId?: string[] | undefined): Item[] | undefined {
+  public readItems = (itemId?: string[] | undefined): Item[] | undefined => {
     api.read(itemId);
     if (itemId === undefined) {
       return this.list.map((item) => ({ ...item }));
@@ -51,34 +65,43 @@ class ItemList {
       .map((item) => ({ ...item }));
   }
 
-  removeItem(itemId: string): void {
+  public removeItem = (itemId: string) => {
+    console.log(this)
+    console.log(`item with id ${itemId} has been removed`)
+    console.log(this.list)
     this.list = this.list.filter((item) => item.id !== itemId);
     api.delete(itemId);
   }
-  removeItems(itemId: string[]): void {
+  public removeItems = (itemId: string[]): void => {
     this.list = this.list.filter((item) =>
       itemId.some((iid) => iid !== item.id),
     );
     api.delete(itemId);
   }
 
-  editItem(itemId: string, updateTo: string): void {
+  public editItem = (itemId: string, updateTo: string): void => {
     const item = this.list.find((item) => item.id === itemId);
     if (item) {
       item.label = updateTo;
       api.update(itemId, item);
     }
   }
-  switchItemCheck(itemId: string): void {
+  public setItemCheck = (itemId: string, checked: boolean): void => {
     const item = this.list.find((item) => item.id === itemId);
     if (item) {
-      item.checked = !item.checked;
+      console.log(`${item.label} is ${!checked ? "not ": ""}done`);
+      item.checked = checked;
       api.update(itemId, item);
     }
   }
 }
 
 const l = new ItemList();
+toBusinessLogic((label: string) => {
+  const item = l.newItem(label);
+  l.addItem(item);
+  return item.id;
+}, l.removeItem, l.setItemCheck);
 // l.addItem({
 //   id: "l0",
 //   checked: false,
