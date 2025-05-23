@@ -1,1 +1,1 @@
-import "./myapproach/main";
+import "./myapproach/controller/controller";
