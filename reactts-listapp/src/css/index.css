@@ -123,6 +123,10 @@ section {
   gap: 1em;
 }
 
+.item.pending {
+  background: magenta;
+}
+
 .item>input[type="checkbox"] {
   text-align: center;
   min-width: 2.5rem;

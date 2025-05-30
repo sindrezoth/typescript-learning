@@ -14,37 +14,42 @@ function fetchSym(
     list = JSON.parse(tmplist);
   }
 
-  const { id, item, updateTo }: { id: string | string[], item: Item, updateTo: string} = JSON.parse(params.body);
+  const {
+    id,
+    item,
+    updateTo,
+  }: { id: string | string[]; item: Item; updateTo: Item } = JSON.parse(
+    params.body,
+  );
 
   return new Promise((res, rej) => {
     setTimeout(() => {
       if (params.method === "get") {
-        if(id) {
-          if(Array.isArray(id)) {
-            const item = list.filter(item => id.some(i => item.id === i));
-            if(item.length > 0) {
+        if (id) {
+          if (Array.isArray(id)) {
+            const item = list.filter((item) => id.some((i) => item.id === i));
+            if (item.length > 0) {
               res({
                 statusCode: 200,
                 message: "getted",
                 params,
-                data: item
+                data: item,
               });
             } else {
               rej({
                 statusCode: 404,
-                message: `No items with ${id.reduce((i, n) => i + ', ' + n)} ids.`,
+                message: `No items with ${id.reduce((i, n) => i + ", " + n)} ids.`,
                 params,
               });
             }
-          }
-          else {
-            const item = list?.find(i => i.id === id);
-            if(item) {
+          } else {
+            const item = list?.find((i) => i.id === id);
+            if (item) {
               res({
                 statusCode: 200,
                 message: "getted",
                 params,
-                data: item
+                data: item,
               });
             } else {
               rej({
@@ -54,18 +59,16 @@ function fetchSym(
               });
             }
           }
-        } 
-        else {
+        } else {
           res({
             statusCode: 200,
             message: "getted",
             params,
-            data: list.map(item => ({...item}))
+            data: list.map((item) => ({ ...item })),
           });
         }
-      } 
-      else if (params.method === "post") {
-        if(Array.isArray(item) && item.length > 0) {
+      } else if (params.method === "post") {
+        if (Array.isArray(item) && item.length > 0) {
           list.push(...item);
           localStorage.setItem("list", JSON.stringify(list));
 
@@ -73,69 +76,72 @@ function fetchSym(
             statusCode: 201,
             message: "created",
             params,
-            data: item
+            data: item,
           });
-        } 
-        else if (item) {
+        } else if (item) {
           list.push(item);
           localStorage.setItem("list", JSON.stringify(list));
           res({
             statusCode: 201,
             message: "created",
             params,
-            data: item
+            data: item,
+          });
+        } else {
+          rej({
+            statusCode: 401,
+            message: `Bad request`,
+            params,
           });
         }
-        else {
+      } else if (params.method === "put") {
+        if (!id || !updateTo) {
           rej({
             statusCode: 401,
             message: `Bad request`,
             params,
-          })
+          });
         }
-      }
-      else if (params.method === "put") {
-        if(!id || !updateTo) {
-          rej({
-            statusCode: 401,
-            message: `Bad request`,
-            params,
-          })
-        }
-        const item = list.find(item => item.id === id);
-        if(item) {
-          item.label = updateTo;
-        }
-        else {
+        let itemIndex = list.findIndex((item) => item.id === id);
+        const item = list.find((item) => item.id === id);
+        if (itemIndex && item) {
+          console.log(updateTo);
+          // list[itemIndex] = updateTo;
+          item.label = updateTo.label;
+          item.checked = updateTo.checked;
+        } else {
           rej({
             statusCode: 404,
             message: `No item with ${id} id.`,
             params,
-          })
+          });
         }
-       
+
         localStorage.setItem("list", JSON.stringify(list));
         res({
           statusCode: 200,
           message: "updated",
           params,
-          data: item
+          data: item,
         });
-      }
-      else if (params.method === "delete") {
-        if(id) {
-          if(Array.isArray(id)) {
-            const {left, remove}: {left: Item[], remove: Item[]} = list.reduce((
-              {left, remove}: {left: Item[], remove: Item[]}, 
-              item: Item
-            ) => {
-                if(id.some(i => item.id === i)) {
-                  remove.push(item);
-                } else {
-                  left.push(item);
-                }
-                return {left, remove};
-              }, {left: [] as Item[], remove: [] as Item[]});
+      } else if (params.method === "delete") {
+        if (id) {
+          if (Array.isArray(id)) {
+            const { left, remove }: { left: Item[]; remove: Item[] } =
+              list.reduce(
+                (
+                  { left, remove }: { left: Item[]; remove: Item[] },
+                  item: Item,
+                ) => {
+                  if (id.some((i) => item.id === i)) {
+                    remove.push(item);
+                  } else {
+                    left.push(item);
+                  }
+                  return { left, remove };
+                },
+                { left: [] as Item[], remove: [] as Item[] },
+              );
             list = left;
 
             localStorage.setItem("list", JSON.stringify(list));
@@ -143,25 +149,25 @@ function fetchSym(
               statusCode: 200,
               message: "deleted",
               params,
-              data: remove
-            })
+              data: remove,
+            });
           } else {
-            list = list.filter(item => item.id !== id);
+            list = list.filter((item) => item.id !== id);
 
             localStorage.setItem("list", JSON.stringify(list));
             res({
               statusCode: 200,
               message: "deleted",
               params,
-              data: item
-            })
+              data: item,
+            });
           }
         } else {
           rej({
             statusCode: 404,
             message: `No item with ${id} id.`,
             params,
-          })
+          });
         }
       }
     }, timeout);

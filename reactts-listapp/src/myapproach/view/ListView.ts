@@ -1,62 +1,38 @@
-const List: HTMLUListElement = document.getElementById(
-  "listItems",
-) as HTMLUListElement;
-
-export function newItemAddHandle(
-  label: string,
-  id: string,
-  removeItemCallback: (id: string) => void,
-  setItemCheck: (id: string, checked: boolean) => void,
-) {
-  const newItemList: HTMLLIElement = document.createElement("li");
-  newItemList.classList.add("item");
-
-  const newItemListInputCheckbox: HTMLInputElement =
-    document.createElement("input");
-
-  newItemListInputCheckbox.type = "checkbox";
-  newItemListInputCheckbox.id = id;
-  newItemListInputCheckbox.addEventListener("change", (e: Event) => {
-    setItemCheck(id, (e.target as HTMLInputElement).checked);
-  });
-
-  const newItemListLabel: HTMLLabelElement = document.createElement("label");
-  newItemListLabel.htmlFor = id;
-  newItemListLabel.textContent = label;
-
-  const newItemListButton: HTMLButtonElement = document.createElement("button");
-  newItemListButton.classList.add("button");
-  newItemListButton.addEventListener("click", () => {
-    removeItemCallback(id);
-    List.removeChild(newItemList);
-  });
-
-  newItemListButton.textContent = "X";
-  newItemList.appendChild(newItemListInputCheckbox);
-  newItemList.appendChild(newItemListLabel);
-  newItemList.appendChild(newItemListButton);
-
-  List.appendChild(newItemList);
-}
-
 type ItemViewType = {
   elem: HTMLLIElement;
   label: string;
   id: string;
   checked: boolean;
+  itemState: ItemState;
+  createdAt: number;
+  updatedAt: number;
 };
+
+type ItemStates = "pending" | "rejected" | "fullfilled" | undefined;
+
+type ItemState = {
+  state: ItemStates,
+  resetState: () => void,
+  setState: (state: ItemStates) => void
+};
+
 type CreateItemFromType = {
   label: string;
   id: string;
+  checked: boolean;
+  createdAt: number;
+  updatedAt: number;
   removeItemCallback: (id: string) => void;
-  setItemCheck: (id: string, checked: boolean) => void;
+  setItemChecked: (id: string, checked: boolean) => void;
 };
 
 export function createItem({
   label,
   id,
+  createdAt,
+  updatedAt,
   removeItemCallback,
-  setItemCheck,
+  setItemChecked,
 }: CreateItemFromType): ItemViewType {
   const newItemList: HTMLLIElement = document.createElement("li");
   newItemList.classList.add("item");
@@ -67,7 +43,7 @@ export function createItem({
   newItemListInputCheckbox.type = "checkbox";
   newItemListInputCheckbox.id = id;
   newItemListInputCheckbox.addEventListener("change", (e: Event) => {
-    setItemCheck(id, (e.target as HTMLInputElement).checked);
+    setItemChecked(id, (e.target as HTMLInputElement).checked);
   });
 
   const newItemListLabel: HTMLLabelElement = document.createElement("label");
@@ -78,7 +54,8 @@ export function createItem({
   newItemListButton.classList.add("button");
   newItemListButton.addEventListener("click", () => {
     removeItemCallback(id);
-    List.removeChild(newItemList);
+    //List.removeChild(newItemList);
+    newItemList.remove();
   });
 
   newItemListButton.textContent = "X";
@@ -86,90 +63,138 @@ export function createItem({
   newItemList.appendChild(newItemListLabel);
   newItemList.appendChild(newItemListButton);
 
-  return { elem: newItemList, label, id, checked: false };
+  const itemState: ItemState = {
+    state: undefined,
+    resetState() {
+      this.state = undefined;
+    },
+    setState(state: ItemStates) {
+      this.state = state;
+    }
+  };
+
+  return { elem: newItemList, itemState, label, id, checked: false, createdAt, updatedAt };
 }
 
-const clearBtn: HTMLButtonElement = document.getElementById(
-  "clearItemsButton",
-) as HTMLButtonElement;
-clearBtn.addEventListener("click", () => {
-  console.log("clear list");
-});
-
-export function clearItemSubmitCallbackReceiver(callback: any) {
-  clearBtn.addEventListener("click", callback);
-}
-
-// public printList = (list: any[]): void => {
-//   list.forEach((item: any): void => {
-//     newItemAddHandle(item.label, item.id, itemList.removeItem, itemList.setItemCheck)
-//   })
-// }
-//
 class ItemView {
   public elem: HTMLLIElement;
-  public props: Omit<ItemViewType, "elem">;
+  public props: Omit<ItemViewType, "elem" | "itemState">;
+  public itemState: ItemState;
   constructor(item: ItemViewType) {
     this.elem = item.elem;
+    this.itemState = item.itemState;
     this.props = {
       label: item.label,
       id: item.id,
       checked: item.checked,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
     };
   }
 }
 
-class ListView {
-  private elem: HTMLUListElement;
-  private list: ItemView[];
+export class View {
+  private addButton: HTMLButtonElement;
+  private inputField: HTMLInputElement;
+  private clearBtn: HTMLButtonElement;
+  private itemList: { elem: HTMLUListElement; list: ItemView[] };
   constructor() {
-    this.elem = document.getElementById("listItems") as HTMLUListElement;
-    this.list = [];
+    this.inputField = document.getElementById("newItem") as HTMLInputElement;
+    this.addButton = document.getElementById("addItem") as HTMLButtonElement;
+    this.clearBtn = document.getElementById(
+      "clearItemsButton",
+    ) as HTMLButtonElement;
+    this.itemList = {
+      elem: document.getElementById("listItems") as HTMLUListElement,
+      list: [],
+    };
   }
+
+  public printList = (list: CreateItemFromType[]): void => {
+    console.log(list);
+    this.removeAllItems();
+    this.addItems(list);
+  };
+
+  public handleClearListBtnClick = (callback: () => void) => {
+    this.clearBtn.addEventListener("click", () => {
+      callback();
+    });
+  };
+
+  public handleAddItemBtnClick = (
+    callback: (label: string) => Omit<CreateItemFromType, "label">,
+  ) => {
+    this.addButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      const label = this.inputField.value;
+
+      const { id, createdAt, updatedAt, removeItemCallback, setItemChecked } =
+        callback(label);
+      if (label) {
+        this.addItem({
+          label,
+          id,
+          checked: false,
+          createdAt,
+          updatedAt,
+          removeItemCallback,
+          setItemChecked,
+        });
+        this.inputField.value = "";
+      } else {
+        console.log("input field is empty");
+      }
+    });
+  };
 
   public addItem = ({
     label,
     id,
+    checked,
+    createdAt,
+    updatedAt,
     removeItemCallback,
-    setItemCheck,
+    setItemChecked,
   }: CreateItemFromType): void => {
     const createdItemElement = createItem({
       label,
       id,
+      checked,
+      createdAt,
+      updatedAt,
       removeItemCallback,
-      setItemCheck,
+      setItemChecked,
     });
-    this.elem.appendChild(createdItemElement.elem);
-    this.list.push(new ItemView(createdItemElement));
+    this.itemList.elem.appendChild(createdItemElement.elem);
+    this.itemList.list.push(new ItemView(createdItemElement));
   };
 
   public addItems = (items: CreateItemFromType[]): void => {
     const createdItemElements: ItemViewType[] = items.map(
       (item: CreateItemFromType) => createItem(item),
     );
-    this.elem.append(
+    this.itemList.elem.append(
       ...createdItemElements.map((item: ItemViewType) => item.elem),
     );
-    this.list.push(
+    this.itemList.list.push(
       ...createdItemElements.map((item: ItemViewType) => new ItemView(item)),
     );
   };
 
   public removeItem = (id: string): void => {
-    const item = this.list.find((item) => item.props.id === id);
+    const item = this.itemList.list.find((item) => item.props.id === id);
     if (item) {
-      this.elem.removeChild(item.elem);
-      this.list = this.list.filter((item) => item.props.id !== id);
+      this.itemList.elem.removeChild(item.elem);
+      this.itemList.list = this.itemList.list.filter(
+        (item) => item.props.id !== id,
+      );
     } else {
       console.log(`Item with "${id}" id not found`);
     }
   };
-}
-
-export class View {
-  private list: ListView;
-  constructor() {
-    this.list = new ListView();
-    this.list;
+  public removeAllItems = (): void => {
+    this.itemList.list.forEach(item => this.itemList.elem.removeChild(item.elem));
+    this.itemList.list = [];
   }
 }

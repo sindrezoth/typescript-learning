@@ -1,30 +1,33 @@
-import { newItemSubmitCallbackReceiver } from "../view/newItemView";
-import { clearItemSubmitCallbackReceiver } from "../view/ListView";
-import { newItemAddHandle } from "../view/ListView";
-import { ItemList } from "../model/model";
+import { View } from "../view/ListView";
+import { Model } from "../model/model";
 
-class View {
-  public printList = (list: any[]): void => { 
-    list.forEach((item: any): void => {
-      newItemAddHandle(item.label, item.id, itemList.removeItem, itemList.setItemCheck)
-    })
-  }
-}
+const model = new Model(); 
+const view = new View();
 
-const view = new View(); 
-const itemList = new ItemList(); 
+model.onready(() => {
+  const listToPrint = model.readItems();
+  if (listToPrint && listToPrint.length) {
+    const { removeItem: removeItemCallback, setItemChecked} = model;
+    view.printList(listToPrint.map(item => ({ ...item, removeItemCallback, setItemChecked })) )
+  } 
 
-itemList.onready(() => {
-  view.printList(itemList.readItems()!) 
-  newItemSubmitCallbackReceiver((label: string) => {
-    const item = itemList.newItem(label);
-    itemList.addItem(item);
-    return item.id;
-  }, itemList.removeItem, itemList.setItemCheck);
-  clearItemSubmitCallbackReceiver(() => {
-    itemList.clearItems();
-    view.printList(itemList.readItems()!);
+  view.handleAddItemBtnClick((label: string) => {
+    const item = model.newItem(label);
+    const {removeItem: removeItemCallback, setItemChecked} = model;
+    model.addItem(item);
+    return { ...item, removeItemCallback, setItemChecked }
+  })
+
+  view.handleClearListBtnClick(() => {
+    console.log(model.readItems());
+    model.clearItems();
+    const listToPrint = model.readItems();
+    console.log(model.readItems());
+    if (listToPrint) {
+      const { removeItem: removeItemCallback, setItemChecked} = model;
+      view.printList(listToPrint.map(item => ({ ...item, removeItemCallback, setItemChecked })) )
+    } 
   })
 })
 
-itemList.init();
+model.init();
