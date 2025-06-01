@@ -197,7 +197,7 @@ type Item = {
 
 class Database implements DatabaseCRUDFacade {
   async create(item: Item | Item[]): Promise<DatabaseOperationResult> {
-    const res = await fetchSym("/api/additem", {
+    const res = await fetchSym(`/api/item`, {
       method: "post",
       body: JSON.stringify({ item }),
     });
@@ -208,7 +208,7 @@ class Database implements DatabaseCRUDFacade {
   async read(
     id: string | string[] | undefined,
   ): Promise<DatabaseOperationResult> {
-    const res = await fetchSym("/api/readitem", {
+    const res = await fetchSym("/api/item", {
       method: "get",
       body: JSON.stringify({ id }),
     });
@@ -217,7 +217,7 @@ class Database implements DatabaseCRUDFacade {
   }
 
   async update(id: string, updateTo: Item): Promise<DatabaseOperationResult> {
-    const res = await fetchSym("/api/updateitem", {
+    const res = await fetchSym("/api/item", {
       method: "put",
       body: JSON.stringify({ id, updateTo }),
     });
@@ -226,7 +226,7 @@ class Database implements DatabaseCRUDFacade {
   }
 
   async delete(id: string | string[]): Promise<DatabaseOperationResult> {
-    const res = await fetchSym("/api/updateitem", {
+    const res = await fetchSym("/api/item", {
       method: "delete",
       body: JSON.stringify({ id }),
     });
