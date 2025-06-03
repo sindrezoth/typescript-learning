@@ -16,3 +16,4 @@
   Not finished yet. But on the current moment its not bad, fast, but not much some specific nuances. Anyway for starting its ok.
 
 - [ ] [TS Project from scratch](https://www.youtube.com/watch?v=61v23Ce5SXA)
+      Create an List App with basic CRUD operatoins with saving options with default as localstorage.
