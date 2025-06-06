@@ -18,6 +18,13 @@ const REDUCER_ACTION_TYPE = {
   SUBMIT: "SUBMIT",
 };
 
+export type ReducerActionType = { 
+  ADD: string; 
+  REMOVE: string; 
+  QUANTITY: string; 
+  SUBMIT: string; 
+}
+
 export type ReducerAction = {
   type: string;
   payload?: CartItemType;
